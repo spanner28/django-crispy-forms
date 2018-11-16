@@ -136,6 +136,7 @@ def render_field(
                 else:
                     layout_object.bound_fields = [bound_field]
 
+            import pdb; pdb.set_trace() # add pdb here
             context.update({
                 'field': bound_field,
                 'labelclass': labelclass,

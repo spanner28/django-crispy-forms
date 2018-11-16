@@ -8,6 +8,7 @@ from crispy_forms.compatibility import string_types, text_type
 from crispy_forms.utils import (
     TEMPLATE_PACK, flatatt, get_template_pack, render_field,
 )
+from betterforms.multiform import MultiModelForm, MultiForm
 
 
 class TemplateNameMixin(object):
@@ -99,11 +100,24 @@ class LayoutObject(TemplateNameMixin):
         return pointers
 
     def get_rendered_fields(self, form, form_style, context, template_pack=TEMPLATE_PACK, **kwargs):
-        return ''.join(
-            render_field(field, form, form_style, context, template_pack=template_pack, **kwargs)
-            for field in self.fields
-        )
+        html = ''
 
+        if (isinstance(form, MultiModelForm) or isinstance(form, MultiForm)):
+            multi_form = form
+            for form_key in form.form_keys:
+                form = multi_form[form_key]
+
+                html = html + ''.join(
+                    render_field(field, form, form_style, context, template_pack=template_pack, **kwargs)
+                    for field in self.fields
+                )
+
+            return html
+        else:
+            return ''.join(
+                render_field(field, form, form_style, context, template_pack=template_pack, **kwargs)
+                for field in self.fields
+            )
 
 class Layout(LayoutObject):
     """
