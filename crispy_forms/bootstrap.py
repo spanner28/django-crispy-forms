@@ -10,6 +10,7 @@ from .compatibility import text_type
 from .layout import Div, Field, LayoutObject, TemplateNameMixin
 from .utils import TEMPLATE_PACK, flatatt, render_field
 
+from betterforms.multiform import MultiModelForm, MultiForm
 
 class PrependedAppendedText(Field):
     template = "%s/layout/prepended_appended_text.html"
@@ -244,12 +245,25 @@ class ContainerHolder(Div):
         in the container, unless that first group was originally set to
         active=False.
         """
-        target = self.first_container_with_errors(form.errors.keys())
-        if target is None:
-            target = self.fields[0]
-            if not getattr(target, '_active_originally_included', None):
-                target.active = True
-            return target
+
+        if (isinstance(form, MultiModelForm) or isinstance(form, MultiForm)):
+            multi_form = form
+            for form_key in form.form_keys:
+                form = multi_form[form_key]
+
+                target = self.first_container_with_errors(form.errors.keys())
+                if target is None:
+                    target = self.fields[0]
+                    if not getattr(target, '_active_originally_included', None):
+                        target.active = True
+                    return target
+        else:
+            target = self.first_container_with_errors(form.errors.keys())
+            if target is None:
+                target = self.fields[0]
+                if not getattr(target, '_active_originally_included', None):
+                    target.active = True
+                return target
 
         target.active = True
         return target
