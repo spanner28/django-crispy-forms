@@ -28,10 +28,26 @@ def default_field_template(template_pack=TEMPLATE_PACK):
     return get_template("%s/field.html" % template_pack)
 
 
+def widget_get_context(name, value, attrs={}):
+    #context = super().get_context(name, value, attrs)
+    context['widget']['name'] = 'test'
+    return context
+
+def set_field_html_name(cls, new_name):
+    """
+    This creates wrapper around the normal widget rendering, 
+    allowing for a custom field name (new_name).
+    """
+    old_render = cls.widget.render
+    def _widget_render_wrapper(name, value, attrs=None):
+        return old_render(new_name, value, attrs)
+
+    cls.widget.render = _widget_render_wrapper
+
 def render_field(
     field, form, form_style, context, template=None, labelclass=None,
     layout_object=None, attrs=None, template_pack=TEMPLATE_PACK,
-    extra_context=None, **kwargs
+    extra_context=None, field_prefix=False, **kwargs
 ):
     """
     Renders a django-crispy-forms field
@@ -59,7 +75,7 @@ def render_field(
 
         if hasattr(field, 'render'):
             return field.render(
-                form, form_style, context, template_pack=template_pack,
+                form, form_style, context, template_pack=template_pack
             )
         else:
             # In Python 2 form field names cannot contain unicode characters without ASCII mapping
@@ -80,15 +96,23 @@ def render_field(
             # Injecting HTML attributes into field's widget, Django handles rendering these
             bound_field = form[field]
             field_instance = bound_field.field
+
+            # We use attrs as a dictionary later, so here we make a copy
+            if (field_prefix):
+                attrs['name'] = '%s__%s' % (str(field_instance.label).lower(), field)
+                attrs['id'] = 'id_%s__%s' % (str(field_instance.label).lower(), field)
+
             if attrs is not None:
                 widgets = getattr(field_instance.widget, 'widgets', [field_instance.widget])
 
-                # We use attrs as a dictionary later, so here we make a copy
                 list_attrs = attrs
                 if isinstance(attrs, dict):
                     list_attrs = [attrs] * len(widgets)
 
                 for index, (widget, attr) in enumerate(zip(widgets, list_attrs)):
+                    if (field_prefix):
+                        set_field_html_name(field_instance, attrs['name'])
+
                     if hasattr(field_instance.widget, 'widgets'):
                         if 'type' in attr and attr['type'] == "hidden":
                             field_instance.widget.widgets[index] = field_instance.hidden_widget(attr)

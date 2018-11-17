@@ -99,9 +99,9 @@ class LayoutObject(TemplateNameMixin):
 
         return pointers
 
-    def get_rendered_fields(self, form, form_style, context, template_pack=TEMPLATE_PACK, **kwargs):
+    def get_rendered_fields(self, form, form_style, context, template_pack=TEMPLATE_PACK, field_prefix=False, **kwargs):
         return ''.join(
-            render_field(field, form, form_style, context, template_pack=template_pack, **kwargs)
+            render_field(field, form, form_style, context, template_pack=template_pack, field_prefix=field_prefix, **kwargs)
             for field in self.fields
         )
 
@@ -446,11 +446,13 @@ class Field(LayoutObject):
 
         template = self.get_template_name(template_pack)
 
+        field_prefix = False
         if (self.form_class != None):
             form = self.form_class()
+            field_prefix = True
 
         return self.get_rendered_fields(
-            form, form_style, context, template_pack,
+            form=form, form_style=form_style, context=context, template_pack=template_pack, field_prefix=field_prefix,
             template=template, attrs=self.attrs, extra_context=extra_context,
             **kwargs
         )
