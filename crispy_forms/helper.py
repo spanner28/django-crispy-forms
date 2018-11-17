@@ -303,126 +303,59 @@ class FormHelper(DynamicLayoutHandler):
         Returns safe html of the rendering of the layout
         """
 
-        if (isinstance(form, MultiModelForm) or isinstance(form, MultiForm)):
-            multi_form = form
-            for form_key in form.form_keys:
-                form = multi_form[form_key]
+        form.rendered_fields = set()
+        form.crispy_field_template = self.field_template
 
-                form.rendered_fields = set()
-                form.crispy_field_template = self.field_template
+        # This renders the specified Layout strictly
+        html = self.layout.render(
+            form,
+            self.form_style,
+            context,
+            template_pack=template_pack
+        )
 
-                # This renders the specified Layout strictly
-                html = self.layout.render(
-                    form,
-                    self.form_style,
-                    context,
-                    template_pack=template_pack
-                )
+        # Rendering some extra fields if specified
+        if self.render_unmentioned_fields or self.render_hidden_fields or self.render_required_fields:
+            fields = set(form.fields.keys())
+            left_fields_to_render = fields - form.rendered_fields
+            for field in left_fields_to_render:
+                if (
+                    self.render_unmentioned_fields or
+                    self.render_hidden_fields and form.fields[field].widget.is_hidden or
+                    self.render_required_fields and form.fields[field].widget.is_required
+                ):
+                    html += render_field(
+                        field,
+                        form,
+                        self.form_style,
+                        context,
+                        template_pack=template_pack
+                    )
 
-                # Rendering some extra fields if specified
-                if self.render_unmentioned_fields or self.render_hidden_fields or self.render_required_fields:
-                    fields = set([ x.split('-')[0] for x in form.fields.keys()])
+        import pprint
+        # If the user has Meta.fields defined, not included in the layout,
+        # we suppose they need to be rendered
+        if hasattr(form, 'Meta'):
+            if hasattr(form.Meta, 'fields'):
+                current_fields = tuple(getattr(form, 'fields', {}).keys())
 
-                    with open("/tmp/out.log", "a+") as fout:
-                        fout.write('%s\n' % pprint.pformat(fields))
+                meta_fields = getattr(form.Meta, 'fields')
 
-                    left_fields_to_render = fields - form.rendered_fields
-                    for field in left_fields_to_render:
-                        if (
-                            self.render_unmentioned_fields or
-                            self.render_hidden_fields and form.fields[field].widget.is_hidden or
-                            self.render_required_fields and form.fields[field].widget.is_required
-                        ):
-                            html += render_field(
-                                field,
-                                form,
-                                self.form_style,
-                                context,
-                                template_pack=template_pack
-                            )
+                fields_to_render = list_intersection(current_fields, meta_fields)
+                left_fields_to_render = list_difference(fields_to_render, form.rendered_fields)
 
-                # If the user has Meta.fields defined, not included in the layout,
-                # we suppose they need to be rendered
-                if hasattr(form, 'Meta'):
-                    if hasattr(form.Meta, 'fields'):
-                        current_fields = tuple([ x.split('-')[0] for x in getattr(form, 'fields', {}).keys() ])
-
-                        import pprint
-                        with open("/tmp/out.log", "a+") as fout:
-                            fout.write('META_FIELDS: %s\n' % pprint.pformat(current_fields))
-
-                        meta_fields = getattr(form.Meta, 'fields')
-
-                        fields_to_render = list_intersection(current_fields, meta_fields)
-                        left_fields_to_render = list_difference(fields_to_render, form.rendered_fields)
-
-                        for field in left_fields_to_render:
-                            # We still respect the configuration of the helper
-                            # regarding which fields to render
-                            if (
-                                self.render_unmentioned_fields or
-                                (self.render_hidden_fields and
-                                 form.fields[field].widget.is_hidden) or
-                                (self.render_required_fields and
-                                 form.fields[field].widget.is_required)
-                            ):
-
-                                html += render_field(field, form, self.form_style, context)
-        else:
-
-            form.rendered_fields = set()
-            form.crispy_field_template = self.field_template
-
-            # This renders the specified Layout strictly
-            html = self.layout.render(
-                form,
-                self.form_style,
-                context,
-                template_pack=template_pack
-            )
-
-            # Rendering some extra fields if specified
-            if self.render_unmentioned_fields or self.render_hidden_fields or self.render_required_fields:
-                fields = set(form.fields.keys())
-                left_fields_to_render = fields - form.rendered_fields
                 for field in left_fields_to_render:
+                    # We still respect the configuration of the helper
+                    # regarding which fields to render
                     if (
                         self.render_unmentioned_fields or
-                        self.render_hidden_fields and form.fields[field].widget.is_hidden or
-                        self.render_required_fields and form.fields[field].widget.is_required
+                        (self.render_hidden_fields and
+                         form.fields[field].widget.is_hidden) or
+                        (self.render_required_fields and
+                         form.fields[field].widget.is_required)
                     ):
-                        html += render_field(
-                            field,
-                            form,
-                            self.form_style,
-                            context,
-                            template_pack=template_pack
-                        )
 
-            import pprint
-            # If the user has Meta.fields defined, not included in the layout,
-            # we suppose they need to be rendered
-            if hasattr(form, 'Meta'):
-                if hasattr(form.Meta, 'fields'):
-                    current_fields = tuple(getattr(form, 'fields', {}).keys())
-
-                    meta_fields = getattr(form.Meta, 'fields')
-
-                    fields_to_render = list_intersection(current_fields, meta_fields)
-                    left_fields_to_render = list_difference(fields_to_render, form.rendered_fields)
-
-                    for field in left_fields_to_render:
-                        # We still respect the configuration of the helper
-                        # regarding which fields to render
-                        if (
-                            self.render_unmentioned_fields or
-                            (self.render_hidden_fields and
-                             form.fields[field].widget.is_hidden) or
-                            (self.render_required_fields and
-                             form.fields[field].widget.is_required)
-                        ):
-
-                            html += render_field(field, form, self.form_style, context)
+                        html += render_field(field, form, self.form_style, context)
 
 
         return mark_safe(html)

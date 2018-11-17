@@ -50,6 +50,7 @@ def render_field(
     :template_pack: Name of the template pack to be used for rendering `field`
     :extra_context: Dictionary to be added to context, added variables by the layout object
     """
+    #import pdb; pdb.set_trace()
     added_keys = [] if extra_context is None else extra_context.keys()
     with KeepContext(context, added_keys):
         if field is None:
@@ -58,6 +59,7 @@ def render_field(
         FAIL_SILENTLY = getattr(settings, 'CRISPY_FAIL_SILENTLY', True)
 
         if hasattr(field, 'render'):
+            #import pdb; pdb.set_trace()
             return field.render(
                 form, form_style, context, template_pack=template_pack,
             )
@@ -136,7 +138,7 @@ def render_field(
                 else:
                     layout_object.bound_fields = [bound_field]
 
-            import pdb; pdb.set_trace() # add pdb here
+            #import pdb; pdb.set_trace() # add pdb here
             context.update({
                 'field': bound_field,
                 'labelclass': labelclass,

@@ -305,7 +305,14 @@ class TabHolder(ContainerHolder):
 
         # Open the group that should be open.
         self.open_target_group_for_form(form)
-        content = self.get_rendered_fields(form, form_style, context, template_pack)
+
+        if (isinstance(form, MultiModelForm) or isinstance(form, MultiForm)):
+            multi_form = form
+            for form_key in form.form_keys:
+                form = multi_form[form_key]
+                #import pdb; pdb.set_trace()
+                content = self.get_rendered_fields(form, form_style, context, template_pack)
+
         links = ''.join(tab.render_link(template_pack) for tab in self.fields)
 
         context.update({

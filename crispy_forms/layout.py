@@ -102,22 +102,23 @@ class LayoutObject(TemplateNameMixin):
     def get_rendered_fields(self, form, form_style, context, template_pack=TEMPLATE_PACK, **kwargs):
         html = ''
 
-        if (isinstance(form, MultiModelForm) or isinstance(form, MultiForm)):
-            multi_form = form
-            for form_key in form.form_keys:
-                form = multi_form[form_key]
-
-                html = html + ''.join(
-                    render_field(field, form, form_style, context, template_pack=template_pack, **kwargs)
-                    for field in self.fields
-                )
-
-            return html
-        else:
-            return ''.join(
-                render_field(field, form, form_style, context, template_pack=template_pack, **kwargs)
-                for field in self.fields
-            )
+#        if (isinstance(form, MultiModelForm) or isinstance(form, MultiForm)):
+#            multi_form = form
+#            for form_key in form.form_keys:
+#                form = multi_form[form_key]
+#
+#                html = ''.join(
+#                    render_field(field, form, form_style, context, template_pack=template_pack, **kwargs)
+#                    for field in self.fields
+#                )
+#
+#            return html
+#        else:
+        #import pdb; pdb.set_trace()
+        return ''.join(
+            render_field(field, form, form_style, context, template_pack=template_pack, **kwargs)
+            for field in self.fields
+        )
 
 class Layout(LayoutObject):
     """
@@ -444,6 +445,9 @@ class Field(LayoutObject):
                 self.attrs['class'] = kwargs.pop('css_class')
 
         self.wrapper_class = kwargs.pop('wrapper_class', None)
+
+        self.form_class = kwargs.pop('form_class', None)
+
         self.template = kwargs.pop('template', self.template)
 
         # We use kwargs as HTML attributes, turning data_id='test' into data-id='test'
@@ -456,6 +460,9 @@ class Field(LayoutObject):
             extra_context['wrapper_class'] = self.wrapper_class
 
         template = self.get_template_name(template_pack)
+
+        if (self.form_class != None):
+            form = self.form_class()
 
         return self.get_rendered_fields(
             form, form_style, context, template_pack,
