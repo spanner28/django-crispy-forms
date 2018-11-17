@@ -100,21 +100,6 @@ class LayoutObject(TemplateNameMixin):
         return pointers
 
     def get_rendered_fields(self, form, form_style, context, template_pack=TEMPLATE_PACK, **kwargs):
-        html = ''
-
-#        if (isinstance(form, MultiModelForm) or isinstance(form, MultiForm)):
-#            multi_form = form
-#            for form_key in form.form_keys:
-#                form = multi_form[form_key]
-#
-#                html = ''.join(
-#                    render_field(field, form, form_style, context, template_pack=template_pack, **kwargs)
-#                    for field in self.fields
-#                )
-#
-#            return html
-#        else:
-        #import pdb; pdb.set_trace()
         return ''.join(
             render_field(field, form, form_style, context, template_pack=template_pack, **kwargs)
             for field in self.fields
