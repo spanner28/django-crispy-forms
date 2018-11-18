@@ -11,7 +11,6 @@ from crispy_forms.utils import (
     TEMPLATE_PACK, flatatt, list_difference, list_intersection, render_field,
 )
 from betterforms.multiform import MultiModelForm, MultiForm
-import pprint
 
 try:
     from django.urls import reverse, NoReverseMatch
@@ -332,7 +331,6 @@ class FormHelper(DynamicLayoutHandler):
                         template_pack=template_pack
                     )
 
-        import pprint
         # If the user has Meta.fields defined, not included in the layout,
         # we suppose they need to be rendered
         if hasattr(form, 'Meta'):

@@ -99,8 +99,8 @@ def render_field(
 
             # We use attrs as a dictionary later, so here we make a copy
             if (field_prefix):
-                attrs['name'] = '%s__%s' % (str(field_instance.label).lower(), field)
-                attrs['id'] = 'id_%s__%s' % (str(field_instance.label).lower(), field)
+                attrs['name'] = '%s__%s' % (str(form.Meta.model.__name__).lower(), field)
+                attrs['id'] = 'id_%s__%s' % (str(form.Meta.model.__name__).lower(), field)
 
             if attrs is not None:
                 widgets = getattr(field_instance.widget, 'widgets', [field_instance.widget])
