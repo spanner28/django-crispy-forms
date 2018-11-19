@@ -100,7 +100,6 @@ def render_field(
                 bound_field = form.fields[field][1]
             else:
                 bound_field = form[field]
-
             field_instance = bound_field.field
 
             # We use attrs as a dictionary later, so here we make a copy

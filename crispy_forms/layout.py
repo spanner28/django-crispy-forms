@@ -449,11 +449,11 @@ class Field(LayoutObject):
 		# Create
         field_prefix = False
         if (self.form_class != None):
-            #TODO: CREATE_FORM_FIX
-            #form = self.form_class()
-            form.form_class = self.form_class
-            form.is_update = True
-            field_prefix = True
+            if (hasattr(form, 'is_update') and form.is_update == True):
+                form.form_class = self.form_class
+            else:
+                form = self.form_class()
+                field_prefix = True
 
         return self.get_rendered_fields(
             form=form, form_style=form_style, context=context, template_pack=template_pack, field_prefix=field_prefix,

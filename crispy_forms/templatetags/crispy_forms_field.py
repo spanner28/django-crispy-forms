@@ -86,11 +86,8 @@ class CrispyFieldNode(template.Node):
             )
 
         field, attrs, html5_required = context.render_context[self]
-        import pdb; pdb.set_trace()
         field = field.resolve(context)
-        # str(field) == following
-        # multiform update: '<input type="text" name="user__username" maxlength="253" name="user__username" id="id_user__username" required />'
-        # nas form update: '<input type="text" name="nasname" value="102.134.80.2" maxlength="128" required id="id_nasname" />'
+
         try:
             html5_required = html5_required.resolve(context)
         except template.VariableDoesNotExist:
