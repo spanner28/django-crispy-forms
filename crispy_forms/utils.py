@@ -94,7 +94,12 @@ def render_field(
 
         try:
             # Injecting HTML attributes into field's widget, Django handles rendering these
-            bound_field = form[field]
+            if (hasattr(form, 'is_update') and form.is_update == True):
+                model_name = form.form_class._meta.model.__name__.lower()
+                field = '%s__%s' % (model_name, field)
+                bound_field = form.fields[field][1]
+            else:
+                bound_field = form[field]
             field_instance = bound_field.field
 
             # We use attrs as a dictionary later, so here we make a copy

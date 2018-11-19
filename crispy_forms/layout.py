@@ -446,9 +446,13 @@ class Field(LayoutObject):
 
         template = self.get_template_name(template_pack)
 
+		# Create
         field_prefix = False
         if (self.form_class != None):
-            form = self.form_class()
+            #TODO: CREATE_FORM_FIX
+            #form = self.form_class()
+            form.form_class = self.form_class
+            form.is_update = True
             field_prefix = True
 
         return self.get_rendered_fields(
