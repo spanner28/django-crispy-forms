@@ -255,20 +255,18 @@ class ContainerHolder(Div):
                 target = self.first_container_with_errors(form.errors.keys())
                 if target is None:
                     target = self.fields[0]
-                    if not getattr(target, '_active_originally_included', None):
-                        target.active = True
-                    return target
+
+                if not getattr(target, '_active_originally_included', None):
+                    target.active = True
+                return target
         else:
             target = self.first_container_with_errors(form.errors.keys())
             if target is None:
                 target = self.fields[0]
-                if not getattr(target, '_active_originally_included', None):
-                    target.active = True
-                return target
 
-        target.active = True
-        return target
-
+            if not getattr(target, '_active_originally_included', None):
+                target.active = True
+            return target
 
 class Tab(Container):
     """
