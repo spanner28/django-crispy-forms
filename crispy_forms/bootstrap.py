@@ -248,9 +248,8 @@ class ContainerHolder(Div):
 
         if (isinstance(form, MultiModelForm) or isinstance(form, MultiForm)):
             multi_form = form
-            for form_key in form.form_keys:
-                #TODO: CREATE_FORM_FIX
-                #form = multi_form[form_key]
+            for form_key in multi_form.forms.keys():
+                form = multi_form[form_key]
 
                 target = self.first_container_with_errors(form.errors.keys())
                 if target is None:

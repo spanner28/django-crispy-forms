@@ -455,9 +455,10 @@ class Field(LayoutObject):
                 formToRender = self.form_class()
 
                 if (isinstance(form, MultiModelForm) or isinstance(form, MultiForm)):
-                    for key, pForm in form.formsPopulated:
-                        if key == self.form_class._meta.model.__name__.lower():
-                            formToRender = pForm
+                    if (hasattr(form, 'formsPopulated')):
+                        for key, pForm in form.formsPopulated:
+                            if key == self.form_class._meta.model.__name__.lower():
+                                formToRender = pForm
 
                 field_prefix = True
 
