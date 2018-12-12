@@ -446,17 +446,23 @@ class Field(LayoutObject):
 
         template = self.get_template_name(template_pack)
 
-		# Create
+        # Create
         field_prefix = False
         if (self.form_class != None):
             if (hasattr(form, 'is_update') and form.is_update == True):
                 form.form_class = self.form_class
             else:
-                form = self.form_class()
+                formToRender = self.form_class()
+
+                if (isinstance(form, MultiModelForm) or isinstance(form, MultiForm)):
+                    for key, pForm in form.formsPopulated:
+                        if key == self.form_class._meta.model.__name__.lower():
+                            formToRender = pForm
+
                 field_prefix = True
 
         return self.get_rendered_fields(
-            form=form, form_style=form_style, context=context, template_pack=template_pack, field_prefix=field_prefix,
+            form=formToRender, form_style=form_style, context=context, template_pack=template_pack, field_prefix=field_prefix,
             template=template, attrs=self.attrs, extra_context=extra_context,
             **kwargs
         )
