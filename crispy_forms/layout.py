@@ -446,9 +446,7 @@ class Field(LayoutObject):
 
         template = self.get_template_name(template_pack)
 
-        # Create
-        field_prefix = False
-        if (self.form_class != None):
+        if (self.form_class != None and (isinstance(form, MultiModelForm) or isinstance(form, MultiForm))):
             form.form_class = self.form_class
 
             try:
@@ -456,16 +454,15 @@ class Field(LayoutObject):
             except:
                 formToRender = self.form_class()
 
-            if (isinstance(form, MultiModelForm) or isinstance(form, MultiForm)):
-                if (hasattr(form, 'formsPopulated') and form.formsPopulated != None):
-                    for key, pForm in form.formsPopulated:
-                        if key == self.form_class._meta.model.__name__.lower():
-                            formToRender = pForm
+            if (hasattr(form, 'formsPopulated') and form.formsPopulated != None):
+                for key, pForm in form.formsPopulated:
+                    if key == self.form_class._meta.model.__name__.lower():
+                        formToRender = pForm
 
-            if (hasattr(form, 'is_update') and form.is_update == True):
-                None
-            else:
-                field_prefix = True
+            field_prefix = True
+        else:
+            field_prefix = False
+            formToRender = form
 
         return self.get_rendered_fields(
             form=formToRender, form_style=form_style, context=context, template_pack=template_pack, field_prefix=field_prefix,
