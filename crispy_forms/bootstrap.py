@@ -252,12 +252,16 @@ class ContainerHolder(Div):
                 form = multi_form[form_key]
 
                 target = self.first_container_with_errors(form.errors.keys())
-                if target is None:
-                    target = self.fields[0]
-
-                if not getattr(target, '_active_originally_included', None):
+                if not target is None and not getattr(target, '_active_originally_included', None):
                     target.active = True
-                return target
+                    return target
+
+            if target is None:
+                target = self.fields[0]
+
+            if not getattr(target, '_active_originally_included', None):
+                target.active = True
+            return target
         else:
             target = self.first_container_with_errors(form.errors.keys())
             if target is None:
