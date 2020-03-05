@@ -272,3 +272,68 @@ def do_uni_form(parser, token):
             )
 
     return CrispyFormNode(form, helper, template_pack=template_pack)
+
+# {% crispy_json %} tag
+@register.tag(name="crispy_json")
+def do_uni_form(parser, token):
+    """
+    You need to pass in at least the form/formset object, and can also pass in the
+    optional `crispy_forms.helpers.FormHelper` object.
+
+    helper (optional): A `crispy_forms.helper.FormHelper` object.
+
+    Usage::
+
+        {% load crispy_tags %}
+        {% crispy form form.helper %}
+
+    You can also provide the template pack as the third argument::
+
+        {% crispy form form.helper 'bootstrap' %}
+
+    If the `FormHelper` attribute is named `helper` you can simply do::
+
+        {% crispy form %}
+        {% crispy form 'bootstrap' %}
+    """
+    token = token.split_contents()
+    form = token.pop(1)
+
+    helper = None
+    template_pack = "'%s'" % 'json'
+
+    # {% crispy form helper %}
+    try:
+        helper = token.pop(1)
+    except IndexError:
+        pass
+
+    # {% crispy form helper 'bootstrap' %}
+    try:
+        template_pack = 'json'
+    except IndexError:
+        pass
+
+    # {% crispy form 'bootstrap' %}
+    if (
+        helper is not None and
+        isinstance(helper, string_types) and
+        ("'" in helper or '"' in helper)
+    ):
+        template_pack = 'json'
+        helper = None
+
+    if template_pack is not None:
+        template_pack = template_pack[1:-1]
+        ALLOWED_TEMPLATE_PACKS = getattr(
+            settings,
+            'CRISPY_ALLOWED_TEMPLATE_PACKS',
+            ('json')
+        )
+        if template_pack not in ALLOWED_TEMPLATE_PACKS:
+            raise template.TemplateSyntaxError(
+                "crispy tag's template_pack argument should be in %s" %
+                str(ALLOWED_TEMPLATE_PACKS)
+            )
+
+    return CrispyFormNode(form, helper, template_pack='json')
