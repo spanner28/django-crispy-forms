@@ -13,6 +13,8 @@ register = template.Library()
 
 # We import the filters, so they are available when doing load crispy_forms_tags
 from crispy_forms.templatetags.crispy_forms_filters import *  # isort:skip
+from django.db.models import Model, ManyToManyField
+import json
 
 
 class ForLoopSimulator(object):
@@ -79,6 +81,95 @@ class BasicNode(template.Node):
         `is_formset` is set to True. If the helper has a layout we use it, for rendering the
         form or the formset's forms.
         """
+        if self.template_pack == 'json':
+            import copy
+            ctx = copy.copy(context)
+            if not (hasattr(context['form'], 'is_update') and context['form'].is_update == True):
+                ctx['object'] = None
+
+#            ctx['field'] = {
+#                'auto_id': ctx['field'].auto_id() if callable(ctx['field'].auto_id) else ctx['field'].auto_id,
+#                'css_classes': ctx['field'].css_classes() if callable(ctx['field'].css_classes) else ctx['field'].css_classes,
+#                'data': ctx['field'].data() if callable(ctx['field'].data) else ctx['field'].data,
+#                'errors': ctx['field'].errors() if callable(ctx['field'].errors) else ctx['field'].errors,
+#                'help_text': ctx['field'].help_text() if callable(ctx['field'].help_text) else ctx['field'].help_text,
+#                'html_initial_id': ctx['field'].html_initial_id() if callable(ctx['field'].html_initial_id) else ctx['field'].html_initial_id,
+#                'html_initial_name': ctx['field'].html_initial_name() if callable(ctx['field'].html_initial_name) else ctx['field'].html_initial_name,
+#                'html_name': ctx['field'].html_name() if callable(ctx['field'].html_name) else ctx['field'].html_name,
+#                'id_for_label': ctx['field'].id_for_label() if callable(ctx['field'].id_for_label) else ctx['field'].id_for_label,
+#                'initial': ctx['field'].initial() if callable(ctx['field'].initial) else ctx['field'].initial,
+#                'is_hidden': ctx['field'].is_hidden() if callable(ctx['field'].is_hidden) else ctx['field'].is_hidden,
+#                'label': ctx['field'].label() if callable(ctx['field'].label) else ctx['field'].label,
+#                'label_tag': ctx['field'].label_tag() if callable(ctx['field'].label_tag) else ctx['field'].label_tag,
+#                'name': ctx['field'].name() if callable(ctx['field'].name) else ctx['field'].name,
+#                'value': ctx['field'].value() if callable(ctx['field'].value) else ctx['field'].value,
+#                'max_length': ctx['field'].field.max_length,
+#                'min_length': ctx['field'].field.min_length,
+#                'required': True if ctx['field'].field.required else False,
+#            }
+
+            ctx['fields'] = dict([ (x, y[1]()) for (x, y) in ctx['fields'].items()])
+            ctx['fields'] = dict([
+                (x, dict({
+                    'label': y.label if hasattr(y, 'label') else None,
+                    'required': y.required if hasattr(y, 'required') else None,
+                    'min_length': y.min_length if hasattr(y, 'min_length') else None,
+                    'max_length': y.max_length if hasattr(y, 'max_length') else None,
+                    'type': str(y.__class__.__name__),
+                })) for (x, y) in context['form'].fields.items()
+            ])
+            ctx['field'] = None
+
+            # adding field values for update
+            if not ctx['form'].instance.id is None:
+                for field, obj in ctx['fields'].items():
+                    if isinstance(getattr(ctx['form'].instance, field), Model):
+                        if (hasattr(getattr(ctx['form'].instance, field), 'uuid')):
+                            ctx['fields'][field]['value'] = getattr(getattr(ctx['form'].instance, field), 'uuid').hex
+                        elif (hasattr(getattr(ctx['form'].instance, field), 'id')):
+                            ctx['fields'][field]['value'] = getattr(getattr(ctx['form'].instance, field), 'id')
+                        elif (hasattr(getattr(ctx['form'].instance, field), 'name')):
+                            ctx['fields'][field]['value'] = getattr(getattr(ctx['form'].instance, field), 'name')
+
+                    elif (getattr(ctx['form'].instance, field).__class__.__name__ == 'ManyRelatedManager'):
+                        ctx['fields'][field]['value'] = []
+                        for value in getattr(ctx['form'].instance, field).all():
+                            if (hasattr(value, 'uuid')):
+                                ctx['fields'][field]['value'].append(getattr(value, 'uuid').hex)
+                            elif (hasattr(value, 'id')):
+                                ctx['fields'][field]['value'].append(getattr(value, 'id'))
+                            elif (hasattr(value, 'name')):
+                                ctx['fields'][field]['value'].append(getattr(value, 'name'))
+                    else:
+                        ctx['fields'][field]['value'] = getattr(ctx['form'].instance, field)
+
+            ctx['request'] = {
+                'build_absolute_uri': ctx['request'].build_absolute_uri() if callable(ctx['request'].build_absolute_uri) else ctx['request'].build_absolute_uri,
+                'content_params': ctx['request'].content_params() if callable(ctx['request'].content_params) else ctx['request'].content_params,
+                'content_type': ctx['request'].content_type() if callable(ctx['request'].content_type) else ctx['request'].content_type,
+                'encoding': ctx['request'].encoding() if callable(ctx['request'].encoding) else ctx['request'].encoding,
+                'get_full_path': ctx['request'].get_full_path() if callable(ctx['request'].get_full_path) else ctx['request'].get_full_path,
+                'get_host': ctx['request'].get_host() if callable(ctx['request'].get_host) else ctx['request'].get_host,
+                'get_port': ctx['request'].get_port() if callable(ctx['request'].get_port) else ctx['request'].get_port,
+                'get_raw_uri': ctx['request'].get_raw_uri() if callable(ctx['request'].get_raw_uri) else ctx['request'].get_raw_uri,
+                'is_ajax': ctx['request'].is_ajax() if callable(ctx['request'].is_ajax) else ctx['request'].is_ajax,
+                'method': ctx['request'].method() if callable(ctx['request'].method) else ctx['request'].method,
+                'path': ctx['request'].path() if callable(ctx['request'].path) else ctx['request'].path,
+                'path_info': ctx['request'].path_info() if callable(ctx['request'].path_info) else ctx['request'].path_info,
+                'scheme': ctx['request'].scheme() if callable(ctx['request'].scheme) else ctx['request'].scheme,
+            }
+
+            ctx['model_verbose_name_plural'] = str(ctx['model_verbose_name_plural'])
+            ctx['user'] = None
+            ctx['form'] = None
+            ctx['csrf_token'] = str(ctx['csrf_token'].__str__())
+            ctx['perms'] = None
+            ctx['session'] = None
+            ctx['messages'] = None
+            ctx['view'] = None
+
+            return json.dumps(context.update(ctx))
+
         # Nodes are not thread safe in multithreaded environments
         # https://docs.djangoproject.com/en/dev/howto/custom-template-tags/#thread-safety-considerations
         if self not in context.render_context:
@@ -196,6 +287,9 @@ def whole_uni_form_template(template_pack=TEMPLATE_PACK):
 
 class CrispyFormNode(BasicNode):
     def render(self, context):
+        if self.template_pack == 'json':
+            return self.get_render(context)
+
         c = self.get_render(context).flatten()
 
         if self.actual_helper is not None and getattr(self.actual_helper, 'template', False):
