@@ -116,7 +116,7 @@ class BasicNode(template.Node):
                     'min_length': y.min_length if hasattr(y, 'min_length') else None,
                     'max_length': y.max_length if hasattr(y, 'max_length') else None,
                     'type': str(y.__class__.__name__),
-                    'model': context['form'].fields[x].queryset.model if x in context['form'].fields and hasattr(context['form'].fields[x], 'queryset') else None,
+                    'model': str(context['form'].fields[x].queryset.model.__class__).strip("<class '").strip("'>") if x in context['form'].fields and hasattr(context['form'].fields[x], 'queryset') else None,
                     'relation': True if x in context['form'].fields and hasattr(context['form'].fields[x], 'queryset') else False,
                 })) for (x, y) in context['form'].fields.items()
             ])
