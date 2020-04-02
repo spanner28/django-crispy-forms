@@ -170,7 +170,7 @@ class BasicNode(template.Node):
             ctx['messages'] = None
             ctx['view'] = None
 
-            return json.dumps(context.update(ctx))
+            return json.dumps(context.update(ctx), ensure_ascii=False, default=str)
 
         # Nodes are not thread safe in multithreaded environments
         # https://docs.djangoproject.com/en/dev/howto/custom-template-tags/#thread-safety-considerations
