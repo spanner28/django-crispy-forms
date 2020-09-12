@@ -108,6 +108,37 @@ class BasicNode(template.Node):
 #                'required': True if ctx['field'].field.required else False,
 #            }
 
+            # TODO: recursion for the entire relation tree
+            related_fields = {}
+            related_fields_2 = {}
+            for (n, m) in context['form'].fields.items():
+                related_fields[n] = {}
+                if hasattr(context['form'].fields[n], 'queryset'):
+                    for y in context['form'].fields[n].queryset.model._meta.fields:
+                        if (not y.model is None):
+                            related_fields_2[y.attname] = {}
+                            for j in y.model._meta.fields:
+                                related_fields_2[y.attname][j.attname] = {
+                                    'label': j.attname if hasattr(j, 'label') else None,
+                                    'required': j.required if hasattr(j, 'required') else None,
+                                    'min_length': j.min_length if hasattr(j, 'min_length') else None,
+                                    'max_length': j.max_length if hasattr(j, 'max_length') else None,
+                                    'type': str(j.__class__.__name__),
+                                    'model': str(j.model).strip("<class '").strip("'>") if hasattr(j, 'model') and not j.model is None else None,
+                                    'has_relation': True if hasattr(j, 'model') and not j.model is None else False,
+                                }
+
+                        related_fields[n][y.attname] = {
+                            'label': y.attname if hasattr(y, 'label') else None,
+                            'required': y.required if hasattr(y, 'required') else None,
+                            'min_length': y.min_length if hasattr(y, 'min_length') else None,
+                            'max_length': y.max_length if hasattr(y, 'max_length') else None,
+                            'type': str(y.__class__.__name__),
+                            'model': str(y.queryset.model).strip("<class '").strip("'>") if hasattr(y, 'queryset') else None,
+                            #'model_fields': related_fields_2[y.attname] if not related_fields_2.get(y.attname, None) is None else None,
+                            'has_relation': True if hasattr(y, 'queryset') else False,
+                        }
+
             ctx['fields'] = dict([ (x, y[1]()) for (x, y) in ctx['fields'].items()])
             ctx['fields'] = dict([
                 (x, dict({
@@ -117,6 +148,7 @@ class BasicNode(template.Node):
                     'max_length': y.max_length if hasattr(y, 'max_length') else None,
                     'type': str(y.__class__.__name__),
                     'model': str(context['form'].fields[x].queryset.model).strip("<class '").strip("'>") if x in context['form'].fields and hasattr(context['form'].fields[x], 'queryset') else None,
+                    'model_fields': related_fields[x] if not related_fields.get(x, None) is None else None,
                     'relation': True if x in context['form'].fields and hasattr(context['form'].fields[x], 'queryset') else False,
                 })) for (x, y) in context['form'].fields.items()
             ])
