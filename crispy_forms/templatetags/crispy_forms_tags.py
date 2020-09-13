@@ -109,6 +109,7 @@ class BasicNode(template.Node):
 #            }
 
             # TODO: recursion for the entire relation tree
+            # TODO: recursion for the entire relation tree
             related_fields = {}
             related_fields_2 = {}
             for (n, m) in context['form'].fields.items():
@@ -117,6 +118,9 @@ class BasicNode(template.Node):
                     for y in context['form'].fields[n].queryset.model._meta.fields:
                         if (not y.related_model is None):
                             related_fields_2[y.attname] = {}
+
+                            #if (n == 'customer' and ctx['form'].instance.__class__.__name__ == 'User'):
+                            #    import pdb; pdb.set_trace()
 
                             for j in y.related_model._meta.fields:
                                 attribute_name = ''
@@ -128,8 +132,8 @@ class BasicNode(template.Node):
                                     'min_length': j.min_length if hasattr(j, 'min_length') else None,
                                     'max_length': j.max_length if hasattr(j, 'max_length') else None,
                                     'type': str(j.__class__.__name__),
-                                    'model': str(y.related_model).strip("<class '").strip("'>") if hasattr(y, 'related_model') and not j.related_model is None else None,
-                                    'has_relation': True if hasattr(y, 'related_model') and not y.related_model is None else False,
+                                    'model': str(j.related_model).strip("<class '").strip("'>") if hasattr(j, 'related_model') and not j.related_model is None else None,
+                                    'has_relation': True if hasattr(j, 'related_model') and not j.related_model is None else False,
                                 }
 
                         if (hasattr(y, 'attname')):
@@ -142,7 +146,7 @@ class BasicNode(template.Node):
                             'type': str(y.__class__.__name__),
                             'model': str(y.related_model).strip("<class '").strip("'>") if hasattr(y, 'related_model') else None,
                             'model_fields': related_fields_2[y.attname] if not related_fields_2.get(y.attname, None) is None else None,
-                            'has_relation': True if hasattr(y, 'queryset') else False,
+                            'has_relation': True if hasattr(y, 'related_model') and not y.related_model is None else False,
                         }
 
             ctx['fields'] = dict([ (x, y[1]()) for (x, y) in ctx['fields'].items()])
