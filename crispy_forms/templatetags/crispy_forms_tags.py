@@ -109,7 +109,6 @@ class BasicNode(template.Node):
 #            }
 
             # TODO: recursion for the entire relation tree
-            # TODO: recursion for the entire relation tree
             related_fields = {}
             related_fields_2 = {}
             for (n, m) in context['form'].fields.items():
@@ -118,9 +117,6 @@ class BasicNode(template.Node):
                     for y in context['form'].fields[n].queryset.model._meta.fields:
                         if (not y.related_model is None):
                             related_fields_2[y.attname] = {}
-
-                            #if (n == 'customer' and ctx['form'].instance.__class__.__name__ == 'User'):
-                            #    import pdb; pdb.set_trace()
 
                             for j in y.related_model._meta.fields:
                                 attribute_name = ''
@@ -136,10 +132,11 @@ class BasicNode(template.Node):
                                     'has_relation': True if hasattr(j, 'related_model') and not j.related_model is None else False,
                                 }
 
+                        attribute_name = ''
                         if (hasattr(y, 'attname')):
                             attribute_name = re.sub(r'_id$', '', y.attname)
                         related_fields[n][attribute_name] = {
-                            'label': attribute_name if hasattr(y, 'label') else None,
+                            'label': attribute_name,
                             'required': y.required if hasattr(y, 'required') else None,
                             'min_length': y.min_length if hasattr(y, 'min_length') else None,
                             'max_length': y.max_length if hasattr(y, 'max_length') else None,
