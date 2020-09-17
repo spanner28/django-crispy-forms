@@ -15,6 +15,7 @@ register = template.Library()
 from crispy_forms.templatetags.crispy_forms_filters import *  # isort:skip
 from django.db.models import Model, ManyToManyField
 import json
+import re
 
 
 class ForLoopSimulator(object):
